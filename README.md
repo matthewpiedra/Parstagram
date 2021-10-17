@@ -28,7 +28,7 @@ Requirements Part 1
 
 Requirements Part 2
 
-<img src='http://recordit.co/OW14HFgGAk' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='http://g.recordit.co/UkRd83qrvs.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 # Parstagram - Part I
 
