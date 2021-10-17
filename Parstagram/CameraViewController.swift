@@ -21,7 +21,7 @@ class CameraViewController: UIViewController, UIImagePickerControllerDelegate, U
     }
     
     @IBAction func onSubmit(_ sender: Any) {
-        // new table creation
+        // new table creation if it doesn't exist already
         let post = PFObject(className: "Posts")
         
         post["comment"] = commentText.text!
@@ -65,8 +65,7 @@ class CameraViewController: UIViewController, UIImagePickerControllerDelegate, U
         
         // adjust size of image to decrease binary size using Alamofireimage module
         let size = CGSize(width: 300, height: 300)
-        let scaledImage = image.af.imageScaled(to: size, scale: nil)
-        
+        let scaledImage = image.af.imageAspectScaled(toFill: size, scale: nil)
         imageView.image = scaledImage
         
         dismiss(animated: true, completion: nil)

@@ -22,12 +22,6 @@ class LoginViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        let userIsSignedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
-        
-        if userIsSignedIn {
-            self.performSegue(withIdentifier: "loginSegue", sender: self)
-        }
     }
     
     @IBAction func signIn(_ sender: Any) {
@@ -37,7 +31,6 @@ class LoginViewController: UIViewController {
         PFUser.logInWithUsername(inBackground: username, password: password) {
             (user, error) in
             if user != nil {
-                UserDefaults.standard.set(true, forKey: "isLoggedIn")
                 self.performSegue(withIdentifier: "loginSegue", sender: nil)
             }
             else {
@@ -61,7 +54,6 @@ class LoginViewController: UIViewController {
         
         user.signUpInBackground { (success, error) in
             if success {
-                UserDefaults.standard.set(true, forKey: "isLoggedIn")
                 self.performSegue(withIdentifier: "loginSegue", sender: nil)
             }
             else {
