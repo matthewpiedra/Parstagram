@@ -43,7 +43,7 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @objc func keyBoardWillBeHidden(note: Notification) {
         commentBar.inputTextView.text = nil
         canAppear = false
-        self.becomeFirstResponder()
+        becomeFirstResponder()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -59,8 +59,23 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return canAppear
     }
     
+    @IBAction func onSignOut(_ sender: Any) {
+        PFUser.logOut()
+        
+        let main = UIStoryboard(name: "Main", bundle: nil)
+        let loginController = main.instantiateViewController(withIdentifier: "LoginViewController")
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene, let delegate = windowScene.delegate as? SceneDelegate else { return }
+        
+        delegate.window?.rootViewController = loginController
+    }
+    
+    @objc func onRefresh() {
+        // load posts again
+        loadPosts()
+    }
+    
     func loadPosts() {
-        self.numberOfPosts = 1
+        self.numberOfPosts = 2
         
         // refresh table view to fetch post you just created (possibly)
         let query = PFQuery(className: "Posts")
@@ -85,28 +100,13 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    @IBAction func onSignOut(_ sender: Any) {
-        PFUser.logOut()
-        
-        let main = UIStoryboard(name: "Main", bundle: nil)
-        let loginController = main.instantiateViewController(withIdentifier: "LoginViewController")
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene, let delegate = windowScene.delegate as? SceneDelegate else { return }
-        
-        delegate.window?.rootViewController = loginController
-    }
-    
-    @objc func onRefresh() {
-        // load posts again
-        loadPosts()
-    }
-    
     func loadMorePosts() {
         // load more posts if user scrolls past a certain point
-        self.numberOfPosts = self.numberOfPosts + 1
-        
+        self.numberOfPosts = self.numberOfPosts + 2
+
         // refresh table view to fetch post you just created (possibly)
         let query = PFQuery(className: "Posts")
-        
+
         // since author is a pointer to a row in another table, if we don't
         // include then it'll just be the pointer, but if we do include it
         // then we get the actual object the pointer is pointing to
@@ -115,7 +115,7 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         query.findObjectsInBackground { (posts, error) in
             if posts != nil {
                 self.posts = posts!
-                
+
                 self.tableView.reloadData()
             }
             else {
@@ -142,7 +142,7 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
             }
         }
         
-        self.tableView.reloadData()
+        tableView.reloadData()
         
         // Clear everything
         commentBar.inputTextView.text = nil
@@ -185,6 +185,8 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Thus there can be many rows linked with eachother in one section
         let post = posts[indexPath.section]
         let comments = (post["comments"] as? [PFObject]) ?? []
+        
+        print(comments.count, indexPath.section)
         
         if indexPath.row == 0 {
             // configure image, username, and label for table cell
@@ -237,23 +239,40 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let comments = (post["comments"] as? [PFObject]) ?? []
 
         if indexPath.row == comments.count + 1 {
-            self.canAppear = true
-            self.becomeFirstResponder()
+            canAppear = true
+            becomeFirstResponder()
             commentBar.inputTextView.becomeFirstResponder()
-            
+
             selectedPost = post
+        }
+    }
+    
+    func deleteComment(fromPost post: PFObject, commentIndex idx: Int) {
+        let comments = post["comments"] as! [PFObject]
+        let comment = comments[idx]
+        
+        do {
+            post.remove(comment, forKey: "comments")
+            try comment.delete()
+            self.tableView.reloadData()
+        }
+        catch {
+            print("There was an error!")
         }
     }
     
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let post = posts[indexPath.section]
         let numOfComments = ((post["comments"] as? [PFObject]) ?? []).count
-        
+
         if indexPath.row != 0 && indexPath.row <= numOfComments {
             let deleteAction = UIContextualAction(style: .destructive, title: nil) { (_, _, completionHandler) in
                         // delete the comment here
+                        self.deleteComment(fromPost: post, commentIndex: indexPath.row-1)
                         completionHandler(true)
                     }
+            
+            
             deleteAction.image = UIImage(systemName: "trash")
             deleteAction.backgroundColor = .systemRed
             let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
