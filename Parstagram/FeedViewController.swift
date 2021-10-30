@@ -186,8 +186,6 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let post = posts[indexPath.section]
         let comments = (post["comments"] as? [PFObject]) ?? []
         
-        print(comments.count, indexPath.section)
-        
         if indexPath.row == 0 {
             // configure image, username, and label for table cell
             let cell = tableView.dequeueReusableCell(withIdentifier: "postCell") as! PostCell

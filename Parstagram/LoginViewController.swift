@@ -9,15 +9,25 @@ import UIKit
 import Parse
 import AlamofireImage
 
-class LoginViewController: UIViewController {
+class LoginViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet weak var usernameField: UITextField!
     @IBOutlet weak var passwordField: UITextField!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        usernameField.delegate = self
 
         // Do any additional setup after loading the view.
+    }
+    
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let limit = 30
+        
+        let string_length = usernameField.text!.count + string.count - range.length
+        
+        return string_length <= limit
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -51,6 +61,10 @@ class LoginViewController: UIViewController {
         let user = PFUser()
         user.username = usernameField.text!
         user.password = passwordField.text!
+        
+        let default_pic = UIImage(named: "image_placeholder")?.pngData()
+        let file = PFFileObject(name: "profile.png", data: default_pic!)
+        user["profile_pic"] = file
         
         user.signUpInBackground { (success, error) in
             if success {
